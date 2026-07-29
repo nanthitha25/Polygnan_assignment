@@ -94,25 +94,6 @@ The component state relies on the following milestone configuration mapping:
 
 #### 4.2 Use Case Diagram
 
-```mermaid
-graph TD
-    User([College Student / User])
-    
-    subgraph EYFI Reward Ladder Component
-        UC1[UC-1: Drag Traction Simulator Slider]
-        UC2[UC-2: Calculate Distance to Next Target]
-        UC3[UC-3: Animate Progress Bar Fill]
-        UC4[UC-4: Toggle Tier Card States]
-        UC5[UC-5: Hover Card to Inspect Perks]
-    end
-
-    User --> UC1
-    User --> UC5
-    UC1 -.->|triggers| UC2
-    UC1 -.->|triggers| UC3
-    UC1 -.->|triggers| UC4
-```
-
 ```text
                  +-------------------------------------------------+
                  | EYFI Reward Ladder Component                    |
@@ -170,29 +151,6 @@ graph TD
 +--------------------------------------------------+
 ```
 
-```mermaid
-classDiagram
-    class RewardLadderState {
-        -int currentRegistrations
-        -int maxRegistrations
-        -int nextMilestoneTarget
-        -float percentageComplete
-        +handleSliderChange(int value) void
-        +calculateDelta() int
-    }
-
-    class RewardTierConfig {
-        -String id
-        -int threshold
-        -String title
-        -Array perks
-        -Component icon
-        +isUnlocked(int currentRegs) boolean
-    }
-
-    RewardLadderState "1" --> "*" RewardTierConfig : maps to
-```
-
 #### 4.4 Activity Diagram
 
 ```text
@@ -224,21 +182,6 @@ classDiagram
  Render Updated UI Frame
 ```
 
-```mermaid
-graph TD
-    A[Start User Session] --> B[User interacts with Range Slider 0-200+]
-    B --> C[Update React State: currentRegistrations]
-    C --> D[Calculate Global Progress Bar Percentage]
-    D --> E[Iterate through RewardTierConfig Array]
-    E --> F{Threshold Met?}
-    F -->|YES| G[Set Card State to UNLOCKED - Neon animation]
-    F -->|NO| H[Set Card State to LOCKED - Mute opacity]
-    G --> I[Calculate Delta: next_tier threshold - currentRegs]
-    H --> I
-    I --> J[Update Dynamic Callout Banner]
-    J --> K[Render Updated UI Frame]
-```
-
 #### 4.5 Sequence Diagram
 
 ```text
@@ -260,24 +203,6 @@ User          TractionSlider         React State            Tier Cards          
  │                   │                      │                      │                     │    "15 to Mentorship!"
  │ 7. See animations │                      │                      │                     │
  │◄─────────────────────────────────────────│──────────────────────│─────────────────────│
-```
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as User
-    participant TractionSlider as TractionSlider
-    participant ReactState as React State
-    participant TierCards as Tier Cards
-    participant CalloutBanner as Callout Banner
-
-    User->>TractionSlider: 1. Drag slider to 60
-    TractionSlider->>ReactState: 2. onChange(60)
-    ReactState->>TierCards: 3. Evaluate Tiers (regs = 60)
-    TierCards-->>ReactState: 4. Tier 0,1,2 Unlocked | Tier 3,4,5 Locked
-    ReactState->>CalloutBanner: 5. Calculate next tier target (75)
-    CalloutBanner-->>User: 6. Render banner: 15 to Campus Lead!
-    ReactState-->>User: 7. Render 60 FPS animations
 ```
 
 ---
