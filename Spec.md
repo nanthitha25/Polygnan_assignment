@@ -143,6 +143,33 @@ graph TD
 
 #### 4.3 Class Diagram
 
+```text
++--------------------------------------------------+
+|               RewardLadderState                  |
++--------------------------------------------------+
+| - currentRegistrations: Integer                  |
+| - maxRegistrations: Integer                      |
+| - nextMilestoneTarget: Integer                   |
+| - percentageComplete: Float                      |
++--------------------------------------------------+
+| + handleSliderChange(value: Integer): Void       |
+| + calculateDelta(): Integer                      |
++--------------------------------------------------+
+                        ^
+                        | maps to
++-----------------------+--------------------------+
+|                  RewardTierConfig                |
++--------------------------------------------------+
+| - id: String                                     |
+| - threshold: Integer                             |
+| - title: String                                  |
+| - perks: Array<String>                           |
+| - icon: Component                                |
++--------------------------------------------------+
+| + isUnlocked(currentRegs: Integer): Boolean      |
++--------------------------------------------------+
+```
+
 ```mermaid
 classDiagram
     class RewardLadderState {
@@ -158,7 +185,7 @@ classDiagram
         -String id
         -int threshold
         -String title
-        -Array~String~ perks
+        -Array perks
         -Component icon
         +isUnlocked(int currentRegs) boolean
     }
@@ -168,16 +195,45 @@ classDiagram
 
 #### 4.4 Activity Diagram
 
+```text
+[Start User Session]
+         │
+         ▼
+ User interacts with Range Slider (0 - 200+)
+         │
+         ▼
+ Update React State (currentRegistrations)
+         │
+         ▼
+ Calculate Global Progress Bar Percentage
+         │
+         ▼
+ Iterate through RewardTierConfig Array
+         │
+         ├───► Threshold Met? (currentRegs >= tier.threshold)
+         │          ├── YES ──► Set Card State to UNLOCKED (Trigger neon animation)
+         │          └── NO  ──► Set Card State to LOCKED (Mute opacity)
+         │
+         ▼
+ Calculate Delta (next_tier.threshold - currentRegs)
+         │
+         ▼
+ Update Dynamic Callout Banner ("X more to go!")
+         │
+         ▼
+ Render Updated UI Frame
+```
+
 ```mermaid
-flowchart TD
-    A[Start User Session] --> B[User interacts with Range Slider 0 - 200+]
+graph TD
+    A[Start User Session] --> B[User interacts with Range Slider 0-200+]
     B --> C[Update React State: currentRegistrations]
     C --> D[Calculate Global Progress Bar Percentage]
     D --> E[Iterate through RewardTierConfig Array]
-    E --> F{Threshold Met? currentRegs >= tier.threshold}
-    F -- YES --> G[Set Card State to UNLOCKED - Neon animation]
-    F -- NO --> H[Set Card State to LOCKED - Mute opacity]
-    G --> I[Calculate Delta: next_tier.threshold - currentRegs]
+    E --> F{Threshold Met?}
+    F -->|YES| G[Set Card State to UNLOCKED - Neon animation]
+    F -->|NO| H[Set Card State to LOCKED - Mute opacity]
+    G --> I[Calculate Delta: next_tier threshold - currentRegs]
     H --> I
     I --> J[Update Dynamic Callout Banner]
     J --> K[Render Updated UI Frame]
@@ -185,22 +241,43 @@ flowchart TD
 
 #### 4.5 Sequence Diagram
 
+```text
+User          TractionSlider         React State            Tier Cards             Callout Banner
+ │                   │                      │                      │                     │
+ │ 1. Drag to 60     │                      │                      │                     │
+ │──────────────────►│                      │                      │                     │
+ │                   │ 2. onChange(60)      │                      │                     │
+ │                   │─────────────────────►│                      │                     │
+ │                   │                      │ 3. Evaluate Tiers    │                     │
+ │                   │                      │─────────────────────►│                     │
+ │                   │                      │                      │ 4. Tier 0,1,2 Unlock│
+ │                   │                      │                      │    Tier 3,4,5 Lock  │
+ │                   │                      │◄─────────────────────│                     │
+ │                   │                      │                      │                     │
+ │                   │                      │ 5. Calc next (75)    │                     │
+ │                   │                      │───────────────────────────────────────────►│
+ │                   │                      │                      │                     │ 6. Update text:
+ │                   │                      │                      │                     │    "15 to Mentorship!"
+ │ 7. See animations │                      │                      │                     │
+ │◄─────────────────────────────────────────│──────────────────────│─────────────────────│
+```
+
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User
-    participant TractionSlider
-    participant ReactState
-    participant TierCards
-    participant CalloutBanner
+    actor User as User
+    participant TractionSlider as TractionSlider
+    participant ReactState as React State
+    participant TierCards as Tier Cards
+    participant CalloutBanner as Callout Banner
 
-    User->>TractionSlider: Drag slider to 60
-    TractionSlider->>ReactState: onChange(60)
-    ReactState->>TierCards: Evaluate Tiers (regs = 60)
-    TierCards-->>ReactState: Tier 0,1,2 Unlocked | Tier 3,4,5 Locked
-    ReactState->>CalloutBanner: Calculate next tier target (75)
-    CalloutBanner-->>User: Render banner text: "15 to Campus Lead!"
-    ReactState-->>User: Render animations (60 FPS)
+    User->>TractionSlider: 1. Drag slider to 60
+    TractionSlider->>ReactState: 2. onChange(60)
+    ReactState->>TierCards: 3. Evaluate Tiers (regs = 60)
+    TierCards-->>ReactState: 4. Tier 0,1,2 Unlocked | Tier 3,4,5 Locked
+    ReactState->>CalloutBanner: 5. Calculate next tier target (75)
+    CalloutBanner-->>User: 6. Render banner: 15 to Campus Lead!
+    ReactState-->>User: 7. Render 60 FPS animations
 ```
 
 ---
